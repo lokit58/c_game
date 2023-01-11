@@ -26,6 +26,13 @@ void showClassList(void);
 int classFromConsole(void);
 void setUpClasses(PLAYER *, PLAYER *);
 
+int combat (PLAYER *, PLAYER *, int *);
+void action(PLAYER *, PLAYER *, int *);
+void printHUD(PLAYER *, PLAYER *, int *);
+int actionSelection(void);
+void printActionSelection(void);
+
+
 void classKnight (PLAYER * );
 void classHeavyKnight (PLAYER * );
 void classArcher (PLAYER * );
@@ -42,16 +49,20 @@ int main(void){
 
     int turn = 0;
     PLAYER p1, p2;
-    //printf("Class selected: %d\n",classSelector());
-    
     setUpNames(&p1, &p2, &turn);
-    //printf("Jmeno 1: %s\nJmeno 2: %s\n", p1.name ,p2.name);
     setUpClasses(&p1,&p2);
-    printf("dmg1: %d dmg2: %d",p1.attack,p2.attack);
+
+    //printf("Class selected: %d\n",classSelector());
+    //printf("Jmeno 1: %s\nJmeno 2: %s\n", p1.name ,p2.name);
+    //printf("dmg1: %d dmg2: %d",p1.attack,p2.attack);
+    //turn = 1;
+
+    printHUD(&p1,&p2,&turn);
+
+    //printActionSelection();
 
     free(p1.name);
     free(p2.name);
-    
     return 0;
 }
 
@@ -62,7 +73,7 @@ char * getName(int * turn){
 
     if (*turn)
     {
-        printf("\nWrite name of second player (max. 20 chars):\n");
+        printf("Write name of second player (max. 20 chars):\n");
     }
     else
     {
@@ -77,12 +88,15 @@ char * getName(int * turn){
 
 //Function to write player names to memory
 void setUpNames(PLAYER * p1, PLAYER * p2, int * turn ){
+    system("cls");
     p1->name = getName(turn);
     * turn = 1;
 
+    system("cls");
     p2->name = getName(turn);
     * turn = 2;
 }
+
 //List of all playable classes
 //TODO: Colors, more classes?
 void showClassList(){
@@ -115,7 +129,7 @@ int classFromConsole(){
     } while (c < 1 || c > 3);
     */
     scanf("%d",&c);
-    return   c;
+    return  c;
 }
 
 //Assign correct class to number
@@ -185,9 +199,77 @@ void classArcher (PLAYER * p){
 
 //Function to assign class to player info
 void setUpClasses(PLAYER * p1, PLAYER *p2){
-    printf("\n%s is picking:\n",p1->name);
+    system("cls");
+    printf("%s is picking:\n\n",p1->name);
     setClass(p1);
 
-    printf("\n%s is picking:\n",p2->name);
+    system("cls");
+    printf("%s is picking:\n\n",p2->name);
     setClass(p2);
+}
+
+int combat (PLAYER * p1, PLAYER * p2, int * turn){
+    do
+    {
+        printHUD(p1,p2,turn);
+        action(p1, p2, turn);
+
+        printHUD(p1,p2,turn);
+        action(p2, p1, turn);
+        
+    } while (p1->health <= 0 || p2->health <= 0);
+}
+
+void action(PLAYER * attacker, PLAYER * defender, int * turn){
+    printActionSelection();
+    int c = actionSelection();
+    switch (c)
+    {
+    case 1:
+        //printf("%s deals %d dmg to %s\n",attacker->name, attacker->attack, defender->name);
+        break;
+    case 2:
+        /* code */
+        break;
+    case 3:
+        /* code */
+        break;
+    
+    default:
+        break;
+    }
+}
+
+//Function to print player stats
+void printHUD(PLAYER * p1, PLAYER * p2, int * turn){
+    system("cls");
+    if (*turn)
+        printf("It's %s's move\n\n", p2->name);
+    else
+        printf("It's %s's move\n\n",p1->name);
+    //Names
+    printf("%s:\t\t\t\t\t\t%s:\n",p1->name,p2->name);
+    //Health
+    printf("Health: %d/%d\t\t\t\t\tHealth: %d/%d\n",p1->health, p1->maxHealt, p2->health, p2->maxHealt); 
+    //Shield
+    printf("Shield: %d + %d (per block action)\t\tShield: %d + %d (per block action)\n", p1->shield, p1->blockAddition, p2->shield, p2->blockAddition);
+    //Energy
+    printf("Energy: %d/%d + %d (per turn)\t\t\tEnergy: %d/%d + %d (per turn)\n",p1->energy, p1->maxEnergy, p1->energyRegen, p2->energy, p2->maxEnergy, p2->energyRegen);
+    //Attack
+    printf("Attack damage: %d\t\t\t\tAttack damage: %d\n",p1->attack, p2->attack);
+}
+
+//Function that returns number of selected action
+//TODO: Input controll
+int actionSelection(){
+    int c;
+    printActionSelection();
+    scanf("%d",&c);
+    return c;
+}
+
+//Function that prints selection menu
+void printActionSelection(){
+    printf("\nEnter respective number to select action:\n");
+    printf("1.Attack\t\t2.Defend\t\t3.Rest\n");
 }
