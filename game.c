@@ -31,6 +31,8 @@ void action(PLAYER *, PLAYER *, int *);
 void printHUD(PLAYER *, PLAYER *, int *);
 int actionSelection(void);
 void printActionSelection(void);
+int chechkEnergy(PLAYER *, int);
+void pressEnter(void);
 
 
 void classKnight (PLAYER * );
@@ -57,10 +59,22 @@ int main(void){
     //printf("dmg1: %d dmg2: %d",p1.attack,p2.attack);
     //turn = 1;
 
-    printHUD(&p1,&p2,&turn);
+    //printHUD(&p1,&p2,&turn);
 
     //printActionSelection();
 
+    int win = combat(&p1, &p2, &turn);
+
+    if (win == 0)
+    {
+        printf("%s wins the game\n",p1.name);
+    }
+    else if (win == 2)
+    {
+        printf("%s wins the game\n",p1.name);
+    }
+    else
+        printf("Draw\n");   
     free(p1.name);
     free(p2.name);
     return 0;
@@ -213,26 +227,74 @@ int combat (PLAYER * p1, PLAYER * p2, int * turn){
     {
         printHUD(p1,p2,turn);
         action(p1, p2, turn);
+        *turn = 1;
 
+        pressEnter();
+        
         printHUD(p1,p2,turn);
         action(p2, p1, turn);
-        
-    } while (p1->health <= 0 || p2->health <= 0);
+        *turn = 0;
+
+        pressEnter();
+
+    } while (p1->health > 0 && p2->health > 0);
+    printHUD(p1,p2,turn);
+    if (p1->health <= 0 && p2->health > 0)
+        return 1;
+    if (p1->health > 0 && p2->health <= 0)
+        return 0;   
+    return 2;
 }
 
 void action(PLAYER * attacker, PLAYER * defender, int * turn){
-    printActionSelection();
-    int c = actionSelection();
+    int c;
+    tryagain:
+    c = actionSelection();
+
     switch (c)
     {
     case 1:
-        //printf("%s deals %d dmg to %s\n",attacker->name, attacker->attack, defender->name);
+        if (chechkEnergy(attacker, 30))
+        {
+            printf("%s deals %d dmg to %s\n",attacker->name, attacker->attack, defender->name);
+            if (defender->shield > 0)
+            {
+                if(attacker->attack <= defender->shield)
+                    defender->shield -= attacker->attack;
+                else
+                {
+                    int tmp = attacker->attack - defender->shield;
+                    defender->shield = 0;
+                    defender->health -= tmp;
+                } 
+            }
+            else
+                defender->health  -= attacker->attack;  
+
+            attacker->energy -= 30;
+        }
+        else
+        {
+            printf("Not enought energy, try again:");
+            goto tryagain;
+        }
         break;
     case 2:
-        /* code */
+        if (chechkEnergy(attacker, 20))
+        {
+            printf("%s shields for %d points\n",attacker->name, attacker->blockAddition);
+            attacker->shield += attacker->blockAddition;
+        }
+        else
+        {
+            printf("Not enought energy, try again:");
+            goto tryagain;
+        }
         break;
     case 3:
-        /* code */
+        printf("%s rests for 10 armor and 50 energy \n",attacker->name);
+        attacker->shield += 10;
+        attacker->energy += 50;
         break;
     
     default:
@@ -264,6 +326,7 @@ void printHUD(PLAYER * p1, PLAYER * p2, int * turn){
 int actionSelection(){
     int c;
     printActionSelection();
+    printf("Enter here: ");
     scanf("%d",&c);
     return c;
 }
@@ -272,4 +335,14 @@ int actionSelection(){
 void printActionSelection(){
     printf("\nEnter respective number to select action:\n");
     printf("1.Attack\t\t2.Defend\t\t3.Rest\n");
+}
+
+int chechkEnergy(PLAYER * p, int energyReq){
+    return (p->energy >= energyReq) ? 1 : 0;
+}
+
+void pressEnter(){
+    printf("Press <Enter>  to countinue\n");
+    while (getchar() != '\n');
+    while (getchar() != '\n');
 }
